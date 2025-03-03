@@ -188,6 +188,13 @@ void formatarBinario(string &bi){
 
 void formatarHexa(string &hexa){
 
+    string novoHexa;
+    novoHexa.append("0x");
+
+
+    novoHexa.append(hexa);
+
+    hexa = novoHexa;
     
 }
 

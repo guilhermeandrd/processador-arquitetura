@@ -15,23 +15,23 @@
 using namespace std;
 
 
-
-std::string PC;
-
-
-bool C=0, Ov=0, Z=0, S=0;
-
+//registradores
+string PC;
+string SP="0x8200";
 vector<string> R;
 
-queue<faixa> instrucoes;
+//flags
+bool C=0, Ov=0, Z=0, S=0;
 
+//estruturas de dados
+queue<faixa> instrucoes;
 stack<faixa> pilha;
+queue<faixa> memoria;
 
 void iniciarPilha(stack<faixa> &pi){
     pilha.push( faixa("0x8200", "")); 
 }
 
-string SP="0x8200";
 
 
 
@@ -106,13 +106,24 @@ void saida(){
     iniciarPilha(pilha);
 
     for(int i=0;i<R.size();i++){
-        cout << "R" << i << ": " << converteLongBiHexa(R[i]) << "\n";
+        string s = converteLongBiHexa(R[i]);
+        formatarHexa(s);
+        cout << "R" << i << ": " << s << "\n";
+    }
+    formatarHexa(PC);
+    PC.pop_back();
+    cout << "PC: " << PC << "\n" << "SP: " << SP << "\n" << "C:  " << C  << "\n"
+    << "Ov: " << Ov << "\n" << "S:  " << S  << "\n" << "Z:  " << Z << "\n";
+
+    cout << "pilha: " << "\n";
+
+    while(!pilha.empty()){
+        cout << pilha.top().end <<  " " << pilha.top().valor << "\n";
+        pilha.pop();
     }
 
-    cout << "PC: " << PC << "\n" << "SP: " << SP << "\n" << "C:  " << C  << "\n"
-    << "Ov: " << Ov << "\n" << "S:  " << S  << "\n" << "Z:  " << Z;
-
 }
+
 std::string procurarInstrucao(std::string binario, vector<string> &reg){
     std::string dado1 = binario.substr(0,4);
     std::string dado2 = binario.substr(0,5);
@@ -211,10 +222,10 @@ std::string procurarInstrucao(std::string binario, vector<string> &reg){
         return "HALT";
     }else if(dado2=="00010"){
         //moverPC(PC, instrucoes);
-        /*string r1 = binario.substr(5,3);
+        string r1 = binario.substr(5,3);
         string r2 = binario.substr(8,3);
         cout << r1 << " " << r2;
-        reg[converterBiPraHexa(r1)-'0'] = reg[converterBiPraHexa(r2)-'0'];*/
+        reg[converterBiPraHexa(r1)-'0'] = reg[converterBiPraHexa(r2)-'0'];
         return "MOV1";
     }else if(dado2=="00011"){
         moverPC(PC, instrucoes);
@@ -270,7 +281,7 @@ std::string procurarInstrucao(std::string binario, vector<string> &reg){
             }
             return "CMP";
         }else{
-            return "instrucao nao definida";
+            return "instrucao nao encontrada";
         }
     }else if(dado2=="00001"){
         if(dado3=="00"){
@@ -297,7 +308,7 @@ std::string procurarInstrucao(std::string binario, vector<string> &reg){
             return "instrucao nao encontrada";
         }
     }else{
-        return "instrucao nao achada";
+        return "instrucao nao encontrada";
     }
     return "0";
 }
@@ -326,15 +337,27 @@ void lerArquivo(string nomeDoArquivo){
 
     while(!instrucoes.empty()){
 
+        if(PC=="0xFFFF"){
+            throw("instrucao HALT encontrada");
+            break;
+        }
+
         //executa a instrucao
-        cout << procurarInstrucao(conveterInstrucao(getInstrucao(PC, instrucoes)),R) << "\n";
+        string s = procurarInstrucao(conveterInstrucao(getInstrucao(PC, instrucoes)),R);
+        cout << s << "\n";
+
+        if(s=="instrucao nao encontrada"){
+            throw("instrucao nao encontrada, pode estar mal definida");
+            break;
+        }
+
+        //cout << procurarInstrucao(conveterInstrucao(getInstrucao(PC, instrucoes)),R);
 
         //muda o valor da instrucao
         instrucoes.pop();
         if(instrucoes.front().end!=""){
             PC = instrucoes.front().end;
         }
-        //
 
     }
 

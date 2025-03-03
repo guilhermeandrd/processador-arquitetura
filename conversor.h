@@ -186,5 +186,10 @@ void formatarBinario(string &bi){
     
 }
 
+void formatarHexa(string &hexa){
+
+    
+}
+
 
 #endif

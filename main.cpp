@@ -1,5 +1,5 @@
 #include <iostream>
-#include "faixa.h"
+#include "mem.h"
 
 using namespace std;
 //funções

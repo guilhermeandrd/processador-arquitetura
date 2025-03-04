@@ -410,7 +410,7 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
 
         return "STR1";
     }else if(dado2=="00101"){
-        
+
         return "STR2";
     }else{
         return "instrucao nao encontrada";
@@ -482,7 +482,7 @@ void lerArquivo(string nomeDoArquivo) {
         }
         cout << "\n PC: " << PC << "\n";
     }
-}
+}//OI
 
 
 #endif

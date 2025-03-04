@@ -77,7 +77,7 @@ void iniciaRegistradores(vector<string> &R){
 
 void saida(){
 
-    iniciarPilha(pilha);
+    //iniciarPilha(pilha);
 
     for(int i=0;i<R.size();i++){
         string s = converteLongBiHexa(R[i]);
@@ -116,16 +116,33 @@ void JMP(string &exPC, string exBinario) {
     string b = exBinario.substr(5, 9);
     cout << "Binário extraído: " << b << "\n";
 
-    formatarBinario(b);
+    // Converte para decimal
+    int deslocamento = stoi(b, nullptr, 2);
 
-    b = ajustarComplementoDois(b);
+    // Ajuste de complemento de dois (caso negativo)
+    if (deslocamento & 0x100) { // Bit 9 indica número negativo
+        deslocamento -= 0x200;  // Converte para -512 a 511
+    }
 
-    string l = converteLongBiHexa(b);
+    // Converte PC de string hexadecimal para decimal
+    int pcAtual = stoi(exPC, nullptr, 16);
 
-    formatarHexa(l);
+    // Soma deslocamento
+    pcAtual += deslocamento;
 
-    exPC = somaHexa(exPC, l);
+    // Converte de volta para hexadecimal
+    stringstream ss;
+    ss << hex << uppercase << pcAtual;
+    exPC = ss.str();
+
+    string formatar = "0x00";
+    formatar.append(exPC);
+    exPC = formatar;
+  //  formatarHexa(exPC);
+
+    cout << "Novo PC: " << exPC << endl;
 }
+
 
 
 
@@ -136,8 +153,10 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
     string dado2 = binario.substr(0,5);
     string dado3 = binario.substr(14,2);
 
-    if(dado1.compare("0111")==0){
+    if(dado1.compare("0111")==0){//TODOLDR
         //moverPC(PC, instrucoes);
+        
+
         return "LDR";
     }else if(dado1.compare("0100")==0){
         //moverPC(PC, instrucoes);
@@ -207,26 +226,78 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         return "MUL";
     }else if(dado1 == "0111"){
         //moverPC(PC, instrucoes);
+        string rd = binario.substr(6,3);
+        string rm = binario.substr(9,3);
+        string rn = binario.substr(12,3);
+
+        bitset<16> n1(reg[converterBiPraHexa(rd)-'0']);
+        bitset<16> n2(reg[converterBiPraHexa(rm)-'0']);
+        bitset<16> n3(reg[converterBiPraHexa(rn)-'0']);
+
+
+        //rd = rm + rn
+        bitset<16> resultado(n2&n3);
+
+        reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
+
         return "AND";
     }else if(dado1 == "1000"){
         //moverPC(PC, instrucoes);
+
+        string rd = binario.substr(6,3);
+        string rm = binario.substr(9,3);
+        string rn = binario.substr(12,3);
+
+        bitset<16> n1(reg[converterBiPraHexa(rd)-'0']);
+        bitset<16> n2(reg[converterBiPraHexa(rm)-'0']);
+        bitset<16> n3(reg[converterBiPraHexa(rn)-'0']);
+
+
+        //rd = rm + rn
+        bitset<16> resultado(n2|n3);
+
+        reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
         return "ORR";
-    }else if(dado1 == "1001"){    
+    }else if(dado1 == "1001"){
         //moverPC(PC, instrucoes);
+        string rd = binario.substr(6,3);
+        string rm = binario.substr(9,3);
+
+        bitset<16> n1(reg[converterBiPraHexa(rd)-'0']);
+        bitset<16> n2(reg[converterBiPraHexa(rm)-'0']);
+
+
+        //rd = rm + rn
+        bitset<16> resultado(~n2);
+
+        reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
         return "NOT";
     }else if(dado1 == "1010"){
+        string rd = binario.substr(6,3);
+        string rm = binario.substr(9,3);
+        string rn = binario.substr(12,3);
+
+        bitset<16> n1(reg[converterBiPraHexa(rd)-'0']);
+        bitset<16> n2(reg[converterBiPraHexa(rm)-'0']);
+        bitset<16> n3(reg[converterBiPraHexa(rn)-'0']);
+
+
+        //rd = rm + rn
+        bitset<16> resultado(n2^n3);
+
+        reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
         //moverPC(PC, instrucoes);
         return "XOR";
-    }else if(dado1 == "1011"){
+    }else if(dado1 == "1011"){ //TODO SHR
         //moverPC(PC, instrucoes);
         return "SHR";
-    }else if(dado1 == "1100"){
+    }else if(dado1 == "1100"){ //TODO SHL
         //moverPC(PC, instrucoes);
         return "SHL";
-    }else if(dado1 == "1101"){
+    }else if(dado1 == "1101"){ //TODO ROR
         //moverPC(PC, instrucoes);
         return "ROR";
-    }else if(dado1 == "1110"){
+    }else if(dado1 == "1110"){ //TODO Rol
         //moverPC(PC, instrucoes);
         return "ROL";
     }else if(binario=="0000000000000000"){
@@ -275,6 +346,7 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
             reg[converterBiPraHexa(r)-'0'] = v ;
 
             SP = subHexa(SP, "0x0002");
+            pilha.pop();
             //moverPC(PC, instrucoes);
             return "POP";
         }else if(dado3=="11"){
@@ -305,14 +377,14 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         if(dado3=="00"){
             //moverPC(PC, instrucoes);
             return "JMP";
-        }else if(dado3=="01"){
+        }else if(dado3=="01"){//TODO terminar JEQ
             //cout <<"\n" << PC << "\n";
             //moverPC(PC, instrucoes);
             return "JEQ";
-        }else if(dado3=="10"){
+        }else if(dado3=="10"){ //TODO JLT
             return "JLT";
             //moverPC(PC, instrucoes);
-        }else if(dado3=="11"){
+        }else if(dado3=="11"){ //TODO JGT
             //moverPC(PC, instrucoes);
             return "JGT";
         }else{
@@ -355,6 +427,8 @@ void lerArquivo(string nomeDoArquivo) {
     // PC recebe o endereço da primeira instrução
     PC = instrucoes.front().end;
 
+    cout << PC << "\n";
+
     // Executa as instruções
     while (!instrucoes.empty()) {
         if (PC == "0xFFFF") {
@@ -384,6 +458,7 @@ void lerArquivo(string nomeDoArquivo) {
                 PC = instrucoes.front().end;
             }
         }
+        cout << "\n PC: " << PC << "\n";
     }
 }
 

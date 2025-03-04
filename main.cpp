@@ -1,20 +1,22 @@
 #include <iostream>
+
 #include "mem.h"
+#include "logic.h"
 
 using namespace std;
 
 int main(){
     
-    lerArquivo("mem.txt");
-    saida();
+    /*lerArquivo("mem.txt");
+    saida();*/
 
-    //preciso ver o que as outras funcoes faz
+    cout << AND("0001000100010001", "1110111011101110") << "\n";
 
-    //tem que conveter o regitrador e os caralhos pra hexadecimal antes de imprimir
+    cout << NOT("0001000100010001") << "\n";
 
-    //fazer o bagulho do PC
+    cout << ORR("0001000100010001",  "1110111011101110") << "\n";
 
-    //implementar logica do SP
+    cout << XOR("0001000100010001",  "1110111011101110");
 
     return 0;
 }

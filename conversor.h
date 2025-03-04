@@ -198,5 +198,16 @@ void formatarHexa(string &hexa){
     
 }
 
+string ajustarComplementoDois(string binario) {
+    int tamanho = binario.size();
+    int valorDecimal = stoi(binario, nullptr, 2); 
+
+    if (binario[0] == '1') {  
+        valorDecimal -= (1 << tamanho); 
+    }
+    return bitset<16>(valorDecimal).to_string();
+}
+
+
 
 #endif

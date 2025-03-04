@@ -12,6 +12,7 @@
 #include "pc.h"
 #include "faixa.h"
 #include <sstream>
+#include <map>
 
 using namespace std;
 
@@ -155,12 +156,12 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
 
     if(dado1.compare("0111")==0){//TODOLDR
         //moverPC(PC, instrucoes);
-        
+
 
         return "LDR";
     }else if(dado1.compare("0100")==0){
         //moverPC(PC, instrucoes);
-        std::string r1 = binario.substr(5,3);
+        std::string r1 = binario.substr(5,3);//5,6,7
         std::string r2 = binario.substr(8,3);
         std::string r3 = binario.substr(11,3);
 
@@ -290,9 +291,25 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         return "XOR";
     }else if(dado1 == "1011"){ //TODO SHR
         //moverPC(PC, instrucoes);
+
+        //oi
+        cout << " oi " << endl;
         return "SHR";
     }else if(dado1 == "1100"){ //TODO SHL
         //moverPC(PC, instrucoes);
+
+        //reg
+        //valor numero de vezes que vou deslocar pra esquerda
+
+        //string binario do registrador
+
+        //fila <char> binario
+
+        //valor vezes
+            //pop apagaria o valor da frente
+            //push "0"
+
+
         return "SHL";
     }else if(dado1 == "1101"){ //TODO ROR
         //moverPC(PC, instrucoes);
@@ -379,7 +396,6 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
             return "JMP";
         }else if(dado3=="01"){//TODO terminar JEQ
             //cout <<"\n" << PC << "\n";
-            //moverPC(PC, instrucoes);
             return "JEQ";
         }else if(dado3=="10"){ //TODO JLT
             return "JLT";
@@ -390,6 +406,12 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         }else{
             return "instrucao nao encontrada";
         }
+    }else if(dado2=="00100"){
+
+        return "STR1";
+    }else if(dado2=="00101"){
+        
+        return "STR2";
     }else{
         return "instrucao nao encontrada";
     }

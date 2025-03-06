@@ -113,6 +113,7 @@ string converteLongBiHexa(string bi){
     return retorno;
 }
 
+//transforma um hexa no formato 0x0000 em um binario
 string conveterInstrucao(string instrucao){
     string retorno;
 

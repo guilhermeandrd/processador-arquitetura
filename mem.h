@@ -20,6 +20,7 @@ using namespace std;
 string PC;
 string SP="0x8200";
 vector<string> R;
+string IR; //aponta para a instrucao atual
 
 //flags
 bool C=0, Ov=0, Z=0, S=0;
@@ -97,41 +98,87 @@ void saida(){
     }
 
     //memoria de dados
+    while (!memoria.empty()){
+        cout << memoria.front().end << " " << memoria.front().valor << "\n";
+        memoria.pop();
+    }
+    
 }
 
-void JEQ(string &exPC, string exBinario, vector<string> reg){
+void JEQ(string &exPC, string exBinario){
 
-    string b = exBinario.substr(5,9);
-    formatarBinario(b);
-    string l = converteLongBiHexa(b);
+    string endereco = exBinario.substr(5, 9);
+    formatarBinario(endereco);
 
-    if(Z==1&&C==0){
-        //string s = somaHexa(exPC, l);
-        //exPC = s;
+    if (Z==1&&C==0) {
+        string binarioPC = conveterInstrucao(exPC);
+
+
+    bitset<16> b1(endereco);
+    bitset<16> b2(binarioPC);
+
+    int16_t num1 = static_cast<int16_t>(b1.to_ulong());
+    int16_t num2 = static_cast<int16_t>(b2.to_ulong());
+    int16_t resultado = num1 + num2;
+
+    string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
+
+    formatarHexa(newPC);
+    exPC = newPC;
+    }else{
+         instrucoes.pop();
+            if (!instrucoes.empty()) {
+                PC = instrucoes.front().end;
+            }
     }
 
 }
 
-void JMP(string &exPC, string exBinario) {
-    // Extrai os 9 bits do deslocamento (posição 5 até 13)
+void JMP(string &exPC, string exBinario) { //TODO ajeitar essa trocha
     string b = exBinario.substr(5, 9);
-    cout << "Binário extraído: " << b << "\n";
+    //cout << "Binário extraído: " << b << "\n";
 
-    // Converte para decimal
-    int deslocamento = stoi(b, nullptr, 2);
+    cout << b;
 
-    // Ajuste de complemento de dois (caso negativo)
-    if (deslocamento & 0x100) { // Bit 9 indica número negativo
-        deslocamento -= 0x200;  // Converte para -512 a 511
+    formatarBinario(b);
+
+    //fazer tratamento de negativo
+
+    string binarioPC = conveterInstrucao(exPC);
+    /*
+    std::bitset<16> b1(reg[converterBiPraHexa(r1)-'0']);
+        std::bitset<16> b2(reg[converterBiPraHexa(r2)-'0']);
+        std::bitset<16> b3(reg[converterBiPraHexa(r3)-'0']);
+
+        int16_t num2 = static_cast<int16_t>(b2.to_ulong());
+        int16_t num3 = static_cast<int16_t>(b3.to_ulong());
+
+        int16_t resultado = num2 - num3;*/
+
+
+    bitset<16> b1(b);
+    bitset<16> b2(binarioPC);
+
+    int16_t num1 = static_cast<int16_t>(b1.to_ulong());
+    int16_t num2 = static_cast<int16_t>(b2.to_ulong());
+    int16_t resultado = num1 + num2;
+
+    string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
+
+    formatarHexa(newPC);
+    exPC = newPC;
+    
+   /* int deslocamento = stoi(b, nullptr, 2);
+
+
+    if (deslocamento & 0x100) { 
+        deslocamento -= 0x200;  
     }
 
-    // Converte PC de string hexadecimal para decimal
     int pcAtual = stoi(exPC, nullptr, 16);
 
-    // Soma deslocamento
     pcAtual += deslocamento;
 
-    // Converte de volta para hexadecimal
     stringstream ss;
     ss << hex << uppercase << pcAtual;
     exPC = ss.str();
@@ -139,13 +186,68 @@ void JMP(string &exPC, string exBinario) {
     string formatar = "0x00";
     formatar.append(exPC);
     exPC = formatar;
-  //  formatarHexa(exPC);
 
-    cout << "Novo PC: " << exPC << endl;
+    cout << "Novo PC: " << exPC << endl;*/
 }
 
 
+void JLT(string &exPC, string exBinario){
+    string endereco = exBinario.substr(5, 9);
+    formatarBinario(endereco);
 
+    if (Z==0&&C==1) {
+
+
+    string binarioPC = conveterInstrucao(exPC);
+
+
+    bitset<16> b1(endereco);
+    bitset<16> b2(binarioPC);
+
+    int16_t num1 = static_cast<int16_t>(b1.to_ulong());
+    int16_t num2 = static_cast<int16_t>(b2.to_ulong());
+    int16_t resultado = num1 + num2;
+
+    string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
+
+    formatarHexa(newPC);
+    exPC = newPC;
+    }else{
+         instrucoes.pop();
+            if (!instrucoes.empty()) {
+                PC = instrucoes.front().end;
+            }
+    }
+
+}
+
+void JGT(string &exPC, string  exBinario){
+      string endereco = exBinario.substr(5, 9);
+    formatarBinario(endereco);
+
+    if (Z==0&&C==0) {
+     
+        string binarioPC = conveterInstrucao(exPC);
+
+
+    bitset<16> b1(endereco);
+    bitset<16> b2(binarioPC);
+
+    int16_t num1 = static_cast<int16_t>(b1.to_ulong());
+    int16_t num2 = static_cast<int16_t>(b2.to_ulong());
+    int16_t resultado = num1 + num2;
+
+    string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
+
+    formatarHexa(newPC);
+    exPC = newPC;
+    }else{
+         instrucoes.pop();
+            if (!instrucoes.empty()) {
+                PC = instrucoes.front().end;
+            }
+    }
+}
 
 
 string procurarInstrucao(std::string binario, vector<string> &reg){
@@ -154,14 +256,37 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
     string dado2 = binario.substr(0,5);
     string dado3 = binario.substr(14,2);
 
-    if(dado1.compare("0111")==0){//TODOLDR
-        //moverPC(PC, instrucoes);
+    if(dado1.compare("0011")==0){//TODOLDR
+        string r = binario.substr(5, 3);
+        string r2 = binario.substr(8,3);
+
+        //r = [r2]
+
+        string enderecoMemoria = reg[converterBiPraHexa(r2)-'0'];
+
+        string valorMemoria;
+
+        queue<faixa> tempMemoria = memoria;
+
+        while (!tempMemoria.empty())
+        {
+            if(tempMemoria.front().end == enderecoMemoria){
+                valorMemoria = tempMemoria.front().valor;
+                break;
+            }
+            tempMemoria.pop();
+
+        }
+        
+        if(valorMemoria.empty()) valorMemoria = "0000000000000000";
+
+        reg[converterBiPraHexa(r)-'0']==valorMemoria;
 
 
         return "LDR";
     }else if(dado1.compare("0100")==0){
         //moverPC(PC, instrucoes);
-        std::string r1 = binario.substr(5,3);//5,6,7
+        std::string r1 = binario.substr(5,3);
         std::string r2 = binario.substr(8,3);
         std::string r3 = binario.substr(11,3);
 
@@ -169,17 +294,16 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         std::bitset<16> b2(reg[converterBiPraHexa(r2)-'0']);
         std::bitset<16> b3(reg[converterBiPraHexa(r3)-'0']);
 
-        unsigned long num1 = b1.to_ulong();
-        unsigned long num2 = b2.to_ulong();
-        unsigned long num3 = b3.to_ulong();
+        int16_t num2 = static_cast<int16_t>(b2.to_ulong());
+        int16_t num3 = static_cast<int16_t>(b3.to_ulong());
 
-        unsigned long resultado = num2 + num3;
-        if (resultado > 0xFFFF) C = 1; // Carry ativado se passar de 16 bits
+        int16_t resultado = num2 + num3;
+        if (resultado > 0xFFFF) C = 1;
 
         reg[converterBiPraHexa(r1) - '0'] = bitset<16>(resultado).to_string();
-        Z = (resultado == 0) ? 1 : 0; // Z ativado se o resultado for zero
+        Z = (resultado == 0) ? 1 : 0;
         S = (resultado & (1 << 15)) ? 1 : 0;
-        Ov = (((num2 ^ num3) >= 0) && ((num2 ^ resultado) < 0)) ? 1 : 0;
+        Ov = ((num2 > 0 && num3 > 0 && resultado < 0) || (num2 < 0 && num3 < 0 && resultado > 0)) ? 1 : 0;
 
         return "ADD";
     }else if(dado1 == "0101"){
@@ -192,12 +316,11 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         std::bitset<16> b2(reg[converterBiPraHexa(r2)-'0']);
         std::bitset<16> b3(reg[converterBiPraHexa(r3)-'0']);
 
-        unsigned long num1 = b1.to_ulong();
-        unsigned long num2 = b2.to_ulong();
-        unsigned long num3 = b3.to_ulong();
+        int16_t num2 = static_cast<int16_t>(b2.to_ulong());
+        int16_t num3 = static_cast<int16_t>(b3.to_ulong());
 
-        unsigned long resultado = num2 - num3;
-        C = (num2 < num3) ? 1 : 0; // Carry ativado se houve underflow
+        int16_t resultado = num2 - num3;
+        C = (num2 < num3) ? 1 : 0;
         Z = (resultado == 0) ? 1 : 0;
         S = (resultado & (1 << 15)) ? 1 : 0;
         Ov = (((num2 ^ num3) < 0) && ((num2 ^ resultado) < 0)) ? 1 : 0;
@@ -214,11 +337,10 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         std::bitset<16> b2(reg[converterBiPraHexa(r2)-'0']);
         std::bitset<16> b3(reg[converterBiPraHexa(r3)-'0']);
 
-        unsigned long num1 = b1.to_ulong();
-        unsigned long num2 = b2.to_ulong();
-        unsigned long num3 = b3.to_ulong();
+        int16_t num2 = static_cast<int16_t>(b2.to_ulong());
+        int16_t num3 = static_cast<int16_t>(b3.to_ulong());
 
-        unsigned long resultado = num2 * num3;
+        int16_t resultado = num2 * num3;
         Z = (resultado == 0) ? 1 : 0;
         S = (resultado & (1 << 15)) ? 1 : 0;
         Ov = (resultado > 32767 || resultado < -32768) ? 1 : 0;
@@ -295,26 +417,49 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         //oi
         cout << " oi " << endl;
         return "SHR";
-    }else if(dado1 == "1100"){ //TODO SHL
-        //moverPC(PC, instrucoes);
-
+    }else if(dado1 == "1100"){ //TODO usar as minhas funcoes aqui
         //reg
         //valor numero de vezes que vou deslocar pra esquerda
+        string r = binario.substr(5,3);
+        string r2 = binario.substr(8,3);
+        string valor = binario.substr(11,4);
 
-        //string binario do registrador
+        int vezes = converterBiPraHexa(valor)-'0'; 
 
-        //fila <char> binario
+        string copia = reg[converterBiPraHexa(r2)-'0'];
 
-        //valor vezes
-            //pop apagaria o valor da frente
-            //push "0"
+        copia = copia.substr(vezes) + string(vezes, '0');
 
+        cout << "copia : "<< copia << "\n";
 
+        reg[converterBiPraHexa(r)-'0'] = copia;
+        
         return "SHL";
-    }else if(dado1 == "1101"){ //TODO ROR
+    }else if(dado1 == "1101"){ //TODO ROR[
+        string r = binario.substr(5, 3); 
+    int regAlvo = converterBiPraHexa(r)-'0';
+
+    string valor = reg[regAlvo];
+
+    char ultimoBit = valor.back(); 
+    valor.pop_back();              
+    valor = ultimoBit + valor;  
+
+    reg[regAlvo] = valor;
+
         //moverPC(PC, instrucoes);
         return "ROR";
     }else if(dado1 == "1110"){ //TODO Rol
+        string r = binario.substr(5, 3);
+        int regAlvo = converterBiPraHexa(r)-'0';
+
+        string valor = reg[regAlvo];
+
+        char primeiroBit = valor.front(); 
+        valor.erase(0, 1);                
+        valor += primeiroBit;            
+
+        reg[regAlvo] = valor;
         //moverPC(PC, instrucoes);
         return "ROL";
     }else if(binario=="0000000000000000"){
@@ -346,14 +491,13 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
     }else if(dado2=="00000"){
         if(dado3=="01"){
             string r = binario.substr(11,3);
-            //somar hexadecimal
-            pilha.push(faixa(somaHexa(SP,"0x0002"), converteLongBiHexa(reg[converterBiPraHexa(r)-'0'])));
 
-            SP = somaHexa(SP, "0x0002");
+            pilha.push(faixa(SP, converteLongBiHexa(reg[converterBiPraHexa(r)-'0'])));
+            SP = subHexa(SP, "0x0002");
 
-            //moverPC(PC, instrucoes);
             return "PUSH";
         }else if(dado3=="10"){
+            SP = somaHexa(SP, "0x0002");
             string r = binario.substr(5,3);
             
             string v = conveterInstrucao(getValorSP(SP, pilha));
@@ -362,12 +506,9 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
 
             reg[converterBiPraHexa(r)-'0'] = v ;
 
-            SP = subHexa(SP, "0x0002");
             pilha.pop();
-            //moverPC(PC, instrucoes);
             return "POP";
         }else if(dado3=="11"){
-            //moverPC(PC, instrucoes);
 
             string r1 = binario.substr(8,3);
             string r2 = binario.substr(11,3);
@@ -376,9 +517,11 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
             std::bitset<16> b1(reg[converterBiPraHexa(r1)-'0']);
             std::bitset<16> b2(reg[converterBiPraHexa(r2)-'0']);
 
-            unsigned long num1 = b1.to_ulong();
-            unsigned long num2 = b2.to_ulong();
-            long resultado = num1 - num2;
+
+            int16_t num1 = static_cast<int16_t>(b1.to_ulong());
+            int16_t num2 = static_cast<int16_t>(b2.to_ulong());
+
+            int16_t resultado = num1 + num2;
 
 
             Z = (num1 == num2) ? 1 : 0;
@@ -391,25 +534,60 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
             return "instrucao nao encontrada";
         }
     }else if(dado2=="00001"){
+        cout << dado3;
         if(dado3=="00"){
-            //moverPC(PC, instrucoes);
             return "JMP";
         }else if(dado3=="01"){//TODO terminar JEQ
-            //cout <<"\n" << PC << "\n";
             return "JEQ";
         }else if(dado3=="10"){ //TODO JLT
             return "JLT";
-            //moverPC(PC, instrucoes);
         }else if(dado3=="11"){ //TODO JGT
-            //moverPC(PC, instrucoes);
             return "JGT";
         }else{
             return "instrucao nao encontrada";
         }
-    }else if(dado2=="00100"){
-
+    }else if(dado2=="00100"){ //TODO fazer mexer na memoria de dados
+        string regNumStr;
+        string regNumStr2;
+        
+        regNumStr = binario.substr(8, 3);
+        regNumStr2 = binario.substr(11, 3);
+        
+        int regNum = stoi(regNumStr, nullptr, 2);
+        int regNum2 = stoi(regNumStr2, nullptr, 2);
+        
+        if (regNum < 0 || regNum > 7 || regNum2 < 0 || regNum2 > 7) {
+    cerr << "Erro: Número de registrador inválido: " << regNum << endl;
+    return "";
+        }
+    
+        string valor = R[regNum2];
+    
+        R[regNum] =  valor;
+    
+        
         return "STR1";
-    }else if(dado2=="00101"){
+    }else if(dado2=="00101"){ //TODO fazer mexer na memoria de dados
+        string regNumStr;
+
+        regNumStr = binario.substr(8, 3);
+        
+        int regNum = stoi(regNumStr, nullptr, 2);
+        
+        /*if (regNum < 0 || regNum > 7) {
+            cerr << "Erro: Número de registrador inválido: " << regNum << endl;
+            return "";
+        }*/
+
+        string valor;
+        
+        valor.append(binario.substr(5,3));
+        valor.append(binario.substr(11,5));
+        formatarBinario(valor);
+
+        string valorBinario = conveterInstrucao(valor); 
+
+        R[regNum] = valorBinario;
 
         return "STR2";
     }else{
@@ -431,7 +609,6 @@ void lerArquivo(string nomeDoArquivo) {
     
     string end, valor;
     
-    // Lendo o arquivo e armazenando instruções na fila
     while (arquivo >> end >> valor) {
         end.pop_back();
         formatarHexa(end);
@@ -440,41 +617,46 @@ void lerArquivo(string nomeDoArquivo) {
 
     arquivo.close();
 
-    // Se não houver instruções, retorna
     if (instrucoes.empty()) {
         cerr << "Erro: Nenhuma instrução encontrada no arquivo!" << endl;
         return;
     }
 
-    // PC recebe o endereço da primeira instrução
     PC = instrucoes.front().end;
 
     cout << PC << "\n";
 
-    // Executa as instruções
     while (!instrucoes.empty()) {
         if (PC == "0xFFFF") {
             cout << "HALT encontrado. Encerrando execução." << endl;
             break;
         }
 
-        // Obtém e converte a instrução
         string instrucaoBinaria = getInstrucao(PC, instrucoes);
         string instrucao = conveterInstrucao(instrucaoBinaria);
         string resultado = procurarInstrucao(instrucao, R);
 
         if (resultado == "instrucao nao encontrada") {
-            cerr << "Erro: Instrução não encontrada ou mal definida." << endl;
+            cout << instrucaoBinaria << "\n";
+            cerr << "Erro: Instrução não encontrada ou mal definida." << endl; //TODO ver esse aqui
             break;
         }
 
         cout << resultado << "\n";
 
-        // Executa a instrução e altera o PC
         if (resultado == "JMP") {
             JMP(PC, instrucao);
-            instrucoes.pop();
-        } else {
+            //instrucoes.pop();
+        } else if(resultado == "JEQ"){
+            JEQ(PC, instrucao);
+            //instrucoes.pop();
+        }else if(resultado == "JGT"){
+            JGT(PC, instrucao);
+            //instrucoes.pop();
+        }else if(resultado == "JLT"){
+            JLT(PC, instrucao);
+            //instrucoes.pop();
+        }else {
             instrucoes.pop();
             if (!instrucoes.empty()) {
                 PC = instrucoes.front().end;
@@ -482,7 +664,7 @@ void lerArquivo(string nomeDoArquivo) {
         }
         cout << "\n PC: " << PC << "\n";
     }
-}//OI
+}
 
 
 #endif

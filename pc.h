@@ -17,6 +17,8 @@ string getInstrucao(string PC, queue<faixa> ex){
         ex.pop();
     }
 
+    cout << PC;
+
     return "nao encontrado";
 }
 

@@ -363,16 +363,19 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         int16_t num2 = static_cast<int16_t>(b2.to_ulong());
         int16_t num3 = static_cast<int16_t>(b3.to_ulong());
 
-        int16_t resultado = num2 * num3;
 
-        //TODO colocar a flag da multiplicao aqui
+        int32_t resultado32 = static_cast<int32_t>(num2) * static_cast<int32_t>(num3);
+        int16_t resultado = static_cast<int16_t>(resultado32);
+
         Z = (resultado == 0) ? 1 : 0;
         S = (resultado & (1 << 15)) ? 1 : 0;
-        Ov = (resultado > 32767 || resultado < -32768) ? 1 : 0;
+        Ov = (resultado32 > INT16_MAX || resultado32 < INT16_MIN) ? 1 : 0;
+        C = (resultado32 & 0xFFFF0000) ? 1 : 0; 
 
         reg[converterBiPraHexa(r1) - '0'] = bitset<16>(resultado).to_string();
+                
         return "MUL";
-    }else if(dado1 == "0111"){ //TODO aqui tbm
+    }else if(dado1 == "0111"){
         //moverPC(PC, instrucoes);
         string rd = binario.substr(6,3);
         string rm = binario.substr(9,3);
@@ -385,11 +388,13 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
 
         //rd = rm + rn
         bitset<16> resultado(n2&n3);
+        Z = (resultado.to_ulong() == 0) ? 1 : 0;
+        S = resultado[15];
 
         reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
 
         return "AND";
-    }else if(dado1 == "1000"){ //TODO flags aqui tbm
+    }else if(dado1 == "1000"){
         //moverPC(PC, instrucoes);
 
         string rd = binario.substr(6,3);
@@ -404,9 +409,12 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         //rd = rm + rn
         bitset<16> resultado(n2|n3);
 
+        Z = (resultado.to_ulong() == 0) ? 1 : 0;
+        S = resultado[15];
+
         reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
         return "ORR";
-    }else if(dado1 == "1001"){ //TODO colocar as flags aqui
+    }else if(dado1 == "1001"){
         //moverPC(PC, instrucoes);
         string rd = binario.substr(6,3);
         string rm = binario.substr(9,3);
@@ -414,9 +422,10 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         bitset<16> n1(reg[converterBiPraHexa(rd)-'0']);
         bitset<16> n2(reg[converterBiPraHexa(rm)-'0']);
 
-
-        //rd = rm + rn
         bitset<16> resultado(~n2);
+
+        Z = (resultado.to_ulong() == 0) ? 1 : 0;
+        S = resultado[15];
 
         reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
         return "NOT";
@@ -429,63 +438,80 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         bitset<16> n2(reg[converterBiPraHexa(rm)-'0']);
         bitset<16> n3(reg[converterBiPraHexa(rn)-'0']);
 
-
-        //rd = rm + rn
         bitset<16> resultado(n2^n3);
 
-        reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
-        //moverPC(PC, instrucoes);
-        return "XOR";
-    }else if(dado1 == "1011"){ //TODO SHR
-        //moverPC(PC, instrucoes);
+        Z = (resultado.to_ulong() == 0) ? 1 : 0;
+        S = resultado[15];
 
-        //oi
-        cout << " oi " << endl;
+        reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
+     
+        return "XOR";
+    }else if(dado1 == "1011"){
+ 
+        string rd = binario.substr(5,3);
+        string rm = binario.substr(8,3);
+        string lm = binario.substr(11,5);
+
+        bitset<16> n2(reg[converterBiPraHexa(rm)-'0']);
+        int shift = stoi(lm, nullptr, 2);
+
+        bitset<16> resultado = n2 >> shift;
+
+        Z = (resultado.to_ulong() == 0) ? 1 : 0;
+        S = 0;
+        C = (shift > 0) ? (n2[shift - 1]) : 0; 
+
+        reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
+
         return "SHR";
-    }else if(dado1 == "1100"){
-        //reg
-        //valor numero de vezes que vou deslocar pra esquerda
+    }else if(dado1 == "1100") {
         string r = binario.substr(5,3);
         string r2 = binario.substr(8,3);
-        string valor = binario.substr(11,4);
+        string valor = binario.substr(11,5);
 
-        int vezes = converterBiPraHexa(valor)-'0'; 
+        int vezes = stoi(valor, nullptr, 2);
 
-        string copia = reg[converterBiPraHexa(r2)-'0'];
+        bitset<16> regSrc(reg[converterBiPraHexa(r2) - '0']);
+        bitset<16> resultado = regSrc << vezes;
 
-        copia = copia.substr(vezes) + string(vezes, '0');
+        C = (vezes > 0) ? regSrc[16 - vezes] : 0;
+        Z = (resultado.to_ulong() == 0) ? 1 : 0;
+        S = resultado[15];
+        Ov = (S != regSrc[15]) ? 1 : 0;
 
-        cout << "copia : "<< copia << "\n";
-
-        reg[converterBiPraHexa(r)-'0'] = copia;
-        
+        reg[converterBiPraHexa(r) - '0'] = resultado.to_string();
         return "SHL";
-    }else if(dado1 == "1101"){ //TODO ROR[
-        string r = binario.substr(5, 3); 
-        int regAlvo = converterBiPraHexa(r)-'0';
+    }else if(dado1 == "1101") { //TODO aqui tem que pegar os dois registradores
+        string r = binario.substr(5,3);
+        int regAlvo = converterBiPraHexa(r) - '0';
 
-        string valor = reg[regAlvo];
+        bitset<16> valor(reg[regAlvo]);
+        bool ultimoBit = valor[0];
 
-        char ultimoBit = valor.back(); 
-        valor.pop_back();              
-        valor = ultimoBit + valor;  
+        valor >>= 1;
+        if (ultimoBit) valor.set(15);
 
-        reg[regAlvo] = valor;
-
-        //moverPC(PC, instrucoes);
+        C = ultimoBit;
+        Z = (valor.to_ulong() == 0) ? 1 : 0;
+        S = valor[15];
+      
+        reg[regAlvo] = valor.to_string();
         return "ROR";
-    }else if(dado1 == "1110"){ //TODO Rol
-        string r = binario.substr(5, 3);
-        int regAlvo = converterBiPraHexa(r)-'0';
+    }else if(dado1 == "1110") { //TODO aqui tambem
+        string r = binario.substr(5,3);
+        int regAlvo = converterBiPraHexa(r) - '0';
 
-        string valor = reg[regAlvo];
+        bitset<16> valor(reg[regAlvo]);
+        bool primeiroBit = valor[15];
 
-        char primeiroBit = valor.front(); 
-        valor.erase(0, 1);                
-        valor += primeiroBit;            
+         valor <<= 1;
+        if (primeiroBit) valor.set(0);
 
-        reg[regAlvo] = valor;
-        //moverPC(PC, instrucoes);
+        C = primeiroBit;
+        Z = (valor.to_ulong() == 0) ? 1 : 0;
+        S = valor[15];
+
+        reg[regAlvo] = valor.to_string();
         return "ROL";
     }else if(binario=="0000000000000000"){
         //moverPC(PC, instrucoes);
@@ -498,20 +524,17 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         //moverPC(PC, instrucoes);
         string r1 = binario.substr(5,3);
         string r2 = binario.substr(8,3);
-        //cout << r1 << " " << r2;
         reg[converterBiPraHexa(r1)-'0'] = reg[converterBiPraHexa(r2)-'0'];
         return "MOV1";
     }else if(dado2=="00011"){
         moverPC(PC, instrucoes);
         std::string rMOV = binario.substr(5,3);
         std::string vMOV = binario.substr(8,8);
-        //cout << binario << endl;
-        //registrador
-        //cout << converterBiPraHexa(rMOV);
+       
+
         formatarBinario(vMOV);
         reg[converterBiPraHexa(rMOV)-'0'] = vMOV;
-        //valor
-        //registrador <- valor
+
         return "MOV2";
     }else if(dado2=="00000"){
         if(dado3=="01"){
@@ -592,13 +615,12 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         regNumStr2 = binario.substr(11, 3);
         
         int regNum = stoi(regNumStr, nullptr, 2);
+
         int regNum2 = stoi(regNumStr2, nullptr, 2);
-        
 
         string valor = R[regNum2];
     
         R[regNum] =  valor;
-    
         
         return "STR1";
     }else if(dado2=="00101"){ //TODO fazer mexer na memoria de dados
@@ -608,11 +630,6 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         
         int regNum = stoi(regNumStr, nullptr, 2);
         
-        /*if (regNum < 0 || regNum > 7) {
-            cerr << "Erro: Número de registrador inválido: " << regNum << endl;
-            return "";
-        }*/
-
         string valor;
         
         valor.append(binario.substr(5,3));
@@ -701,4 +718,4 @@ void lerArquivo(string nomeDoArquivo) {
 }
 
 
-#endif
+#endif;

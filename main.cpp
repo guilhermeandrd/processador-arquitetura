@@ -7,7 +7,7 @@ using namespace std;
 
 int main(){
     
-    lerArquivo("mem.txt");
+    lerArquivo("teste1.txt");
     saida();
 
     return 0;

@@ -76,6 +76,10 @@ void iniciaRegistradores(vector<string> &R){
     }
 }
 
+void iniciaMemoriaDeDados(queue<faixa> &exMem){
+    exMem.push(faixa(SP, ""));
+}
+
 
 void saida(){
 
@@ -97,6 +101,7 @@ void saida(){
         pilha.pop();
     }
 
+    cout << "memoria de dados: " << "\n";
     //memoria de dados
     while (!memoria.empty()){
         cout << memoria.front().end << " " << memoria.front().valor << "\n";
@@ -256,7 +261,7 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
     string dado2 = binario.substr(0,5);
     string dado3 = binario.substr(14,2);
 
-    if(dado1.compare("0011")==0){//TODOLDR
+    if(dado1=="0011"){//TODOLDR
         string r = binario.substr(5, 3);
         string r2 = binario.substr(8,3);
 
@@ -284,7 +289,7 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
 
 
         return "LDR";
-    }else if(dado1.compare("0100")==0){
+    }else if(dado1=="0100"){
         //moverPC(PC, instrucoes);
         std::string r1 = binario.substr(5,3);
         std::string r2 = binario.substr(8,3);
@@ -298,12 +303,21 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         int16_t num3 = static_cast<int16_t>(b3.to_ulong());
 
         int16_t resultado = num2 + num3;
-        if (resultado > 0xFFFF) C = 1;
 
-        reg[converterBiPraHexa(r1) - '0'] = bitset<16>(resultado).to_string();
+        C = (resultado < num2) ? 1 : 0;
         Z = (resultado == 0) ? 1 : 0;
         S = (resultado & (1 << 15)) ? 1 : 0;
-        Ov = ((num2 > 0 && num3 > 0 && resultado < 0) || (num2 < 0 && num3 < 0 && resultado > 0)) ? 1 : 0;
+
+        bool sign2 = (num2 & (1 << 15)) != 0;
+        bool sign3 = (num3 & (1 << 15)) != 0;
+        bool signR = (resultado & (1 << 15)) != 0;
+
+        Ov = (sign2 == sign3) && (sign2 != signR); // Se os operandos tinham o mesmo sinal, mas o resultado mudou
+
+
+        //Ov = ((num2 > 0 && num3 > 0 && resultado < 0) || (num2 < 0 && num3 < 0 && resultado > 0)) ? 1 : 0;
+
+        reg[converterBiPraHexa(r1) - '0'] = bitset<16>(resultado).to_string();
 
         return "ADD";
     }else if(dado1 == "0101"){
@@ -320,10 +334,19 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         int16_t num3 = static_cast<int16_t>(b3.to_ulong());
 
         int16_t resultado = num2 - num3;
-        C = (num2 < num3) ? 1 : 0;
+        C = (resultado < num2) ? 1 : 0;
         Z = (resultado == 0) ? 1 : 0;
         S = (resultado & (1 << 15)) ? 1 : 0;
-        Ov = (((num2 ^ num3) < 0) && ((num2 ^ resultado) < 0)) ? 1 : 0;
+
+        bool sign2 = (num2 & (1 << 15)) != 0;  // Sinal de num2
+        bool sign3 = (num3 & (1 << 15)) != 0;  // Sinal de num3
+        bool signR = (resultado & (1 << 15)) != 0; // Sinal do resultado
+
+        // Overflow ocorre se os sinais de num2 e num3 são iguais, mas o sinal do resultado é diferente
+        Ov = (sign2 == sign3) && (sign2 != signR);
+
+
+        //Ov = (((num2 ^ num3) < 0) && ((num2 ^ resultado) < 0)) ? 1 : 0;
 
         reg[converterBiPraHexa(r1) - '0'] = bitset<16>(resultado).to_string();
         return "SUB";
@@ -341,13 +364,15 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         int16_t num3 = static_cast<int16_t>(b3.to_ulong());
 
         int16_t resultado = num2 * num3;
+
+        //TODO colocar a flag da multiplicao aqui
         Z = (resultado == 0) ? 1 : 0;
         S = (resultado & (1 << 15)) ? 1 : 0;
         Ov = (resultado > 32767 || resultado < -32768) ? 1 : 0;
 
         reg[converterBiPraHexa(r1) - '0'] = bitset<16>(resultado).to_string();
         return "MUL";
-    }else if(dado1 == "0111"){
+    }else if(dado1 == "0111"){ //TODO aqui tbm
         //moverPC(PC, instrucoes);
         string rd = binario.substr(6,3);
         string rm = binario.substr(9,3);
@@ -364,7 +389,7 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
 
         return "AND";
-    }else if(dado1 == "1000"){
+    }else if(dado1 == "1000"){ //TODO flags aqui tbm
         //moverPC(PC, instrucoes);
 
         string rd = binario.substr(6,3);
@@ -381,7 +406,7 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
 
         reg[converterBiPraHexa(rd)-'0'] = resultado.to_string();
         return "ORR";
-    }else if(dado1 == "1001"){
+    }else if(dado1 == "1001"){ //TODO colocar as flags aqui
         //moverPC(PC, instrucoes);
         string rd = binario.substr(6,3);
         string rm = binario.substr(9,3);
@@ -417,7 +442,7 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         //oi
         cout << " oi " << endl;
         return "SHR";
-    }else if(dado1 == "1100"){ //TODO usar as minhas funcoes aqui
+    }else if(dado1 == "1100"){
         //reg
         //valor numero de vezes que vou deslocar pra esquerda
         string r = binario.substr(5,3);
@@ -437,15 +462,15 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         return "SHL";
     }else if(dado1 == "1101"){ //TODO ROR[
         string r = binario.substr(5, 3); 
-    int regAlvo = converterBiPraHexa(r)-'0';
+        int regAlvo = converterBiPraHexa(r)-'0';
 
-    string valor = reg[regAlvo];
+        string valor = reg[regAlvo];
 
-    char ultimoBit = valor.back(); 
-    valor.pop_back();              
-    valor = ultimoBit + valor;  
+        char ultimoBit = valor.back(); 
+        valor.pop_back();              
+        valor = ultimoBit + valor;  
 
-    reg[regAlvo] = valor;
+        reg[regAlvo] = valor;
 
         //moverPC(PC, instrucoes);
         return "ROR";
@@ -493,7 +518,10 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
             string r = binario.substr(11,3);
 
             pilha.push(faixa(SP, converteLongBiHexa(reg[converterBiPraHexa(r)-'0'])));
+            string guardar = pilha.top().valor;
+            formatarHexa(guardar);
             SP = subHexa(SP, "0x0002");
+            memoria.push(faixa(pilha.top().end, guardar));
 
             return "PUSH";
         }else if(dado3=="10"){
@@ -506,6 +534,9 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
 
             reg[converterBiPraHexa(r)-'0'] = v ;
 
+            string guardar = converteLongBiHexa(v);
+            formatarHexa(guardar);
+            memoria.push(faixa(subHexa(SP, "0x0002"), guardar));
             pilha.pop();
             return "POP";
         }else if(dado3=="11"){
@@ -521,13 +552,20 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
             int16_t num1 = static_cast<int16_t>(b1.to_ulong());
             int16_t num2 = static_cast<int16_t>(b2.to_ulong());
 
-            int16_t resultado = num1 + num2;
+            int16_t resultado = num1 - num2;
 
 
             Z = (num1 == num2) ? 1 : 0;
             C = (num1 < num2) ? 1 : 0;
             S = (resultado & (1 << 15)) ? 1 : 0;
-            Ov = (((num1 ^ num2) < 0) && ((num1 ^ resultado) < 0)) ? 1 : 0;
+
+            bool sign2 = (num1 & (1 << 15)) != 0;
+            bool sign3 = (num2 & (1 << 15)) != 0;
+            bool signR = (resultado & (1 << 15)) != 0; 
+
+            Ov = (sign2 == sign3) && (sign2 != signR);
+
+           // Ov = (((num1 ^ num2) < 0) && ((num1 ^ resultado) < 0)) ? 1 : 0;
 
             return "CMP";
         }else{
@@ -556,11 +594,7 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         int regNum = stoi(regNumStr, nullptr, 2);
         int regNum2 = stoi(regNumStr2, nullptr, 2);
         
-        if (regNum < 0 || regNum > 7 || regNum2 < 0 || regNum2 > 7) {
-    cerr << "Erro: Número de registrador inválido: " << regNum << endl;
-    return "";
-        }
-    
+
         string valor = R[regNum2];
     
         R[regNum] =  valor;
@@ -637,8 +671,8 @@ void lerArquivo(string nomeDoArquivo) {
         string resultado = procurarInstrucao(instrucao, R);
 
         if (resultado == "instrucao nao encontrada") {
-            cout << instrucaoBinaria << "\n";
-            cerr << "Erro: Instrução não encontrada ou mal definida." << endl; //TODO ver esse aqui
+            //cout << instrucaoBinaria << "\n";
+            cerr << "Erro: Instrução não encontrada ou mal definida." << endl;
             break;
         }
 

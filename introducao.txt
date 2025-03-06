@@ -1,0 +1,9 @@
+O projeto foi feito usando de string, char e as devidas
+manipulações em bitset.
+
+Foi a maneira que o grupo soube implementar com o conhecimento
+que tínhamos.
+
+Tentamos ao máximo executar cada função como está na tabela.
+
+Por favor, olhe com bons olhos.

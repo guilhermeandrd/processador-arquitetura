@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "mem.h"
-#include "logic.h"
+
 
 using namespace std;
 

@@ -110,150 +110,113 @@ void saida(){
     
 }
 
-void JEQ(string &exPC, string exBinario){
-
+void JEQ(string &exPC, string exBinario) {
     string endereco = exBinario.substr(5, 9);
     formatarBinario(endereco);
 
-    if (Z==1&&C==0) {
+    if (Z == 1 && C == 0) {
         string binarioPC = conveterInstrucao(exPC);
 
+        bitset<16> b1(stoi(endereco, nullptr, 2));
+        bitset<16> b2(stoi(binarioPC, nullptr, 2));
 
-    bitset<16> b1(endereco);
-    bitset<16> b2(binarioPC);
+        int16_t num1 = static_cast<int16_t>(b1.to_ulong());
+        int16_t num2 = static_cast<int16_t>(b2.to_ulong());
 
-    int16_t num1 = static_cast<int16_t>(b1.to_ulong());
-    int16_t num2 = static_cast<int16_t>(b2.to_ulong());
-    int16_t resultado = num1 + num2;
+        int16_t resultado = num1 + num2;
 
-    string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
+        string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
+        formatarHexa(newPC);
 
-    formatarHexa(newPC);
-    exPC = newPC;
-    }else{
-         instrucoes.pop();
-            if (!instrucoes.empty()) {
-                PC = instrucoes.front().end;
-            }
+        exPC = newPC;
+    } else {
+        instrucoes.pop();
+
+        if (!instrucoes.empty()) {
+            PC = instrucoes.front().end;
+        }
     }
-
 }
 
-void JMP(string &exPC, string exBinario) { //TODO ajeitar essa trocha
+
+void JMP(string &exPC, string exBinario) {
     string b = exBinario.substr(5, 9);
-    //cout << "Binário extraído: " << b << "\n";
-
-    cout << b;
-
     formatarBinario(b);
 
-    //fazer tratamento de negativo
-
-    string binarioPC = conveterInstrucao(exPC);
-    /*
-    std::bitset<16> b1(reg[converterBiPraHexa(r1)-'0']);
-        std::bitset<16> b2(reg[converterBiPraHexa(r2)-'0']);
-        std::bitset<16> b3(reg[converterBiPraHexa(r3)-'0']);
-
-        int16_t num2 = static_cast<int16_t>(b2.to_ulong());
-        int16_t num3 = static_cast<int16_t>(b3.to_ulong());
-
-        int16_t resultado = num2 - num3;*/
-
-
-    bitset<16> b1(b);
-    bitset<16> b2(binarioPC);
-
-    int16_t num1 = static_cast<int16_t>(b1.to_ulong());
-    int16_t num2 = static_cast<int16_t>(b2.to_ulong());
-    int16_t resultado = num1 + num2;
-
-    string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
-
-    formatarHexa(newPC);
-    exPC = newPC;
-    
-   /* int deslocamento = stoi(b, nullptr, 2);
-
-
-    if (deslocamento & 0x100) { 
-        deslocamento -= 0x200;  
+    int16_t deslocamento = static_cast<int16_t>(bitset<16>(b).to_ulong());
+    if (b[0] == '1') {
+        deslocamento -= 512;
     }
 
-    int pcAtual = stoi(exPC, nullptr, 16);
-
+    int16_t pcAtual = stoi(exPC, nullptr, 16);
     pcAtual += deslocamento;
 
     stringstream ss;
     ss << hex << uppercase << pcAtual;
-    exPC = ss.str();
+    string newPC = ss.str();
 
-    string formatar = "0x00";
-    formatar.append(exPC);
-    exPC = formatar;
-
-    cout << "Novo PC: " << exPC << endl;*/
+    formatarHexa(newPC);
+    exPC = newPC;
 }
 
 
-void JLT(string &exPC, string exBinario){
+
+void JLT(string &exPC, string exBinario) {
     string endereco = exBinario.substr(5, 9);
     formatarBinario(endereco);
 
-    if (Z==0&&C==1) {
-
-
-    string binarioPC = conveterInstrucao(exPC);
-
-
-    bitset<16> b1(endereco);
-    bitset<16> b2(binarioPC);
-
-    int16_t num1 = static_cast<int16_t>(b1.to_ulong());
-    int16_t num2 = static_cast<int16_t>(b2.to_ulong());
-    int16_t resultado = num1 + num2;
-
-    string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
-
-    formatarHexa(newPC);
-    exPC = newPC;
-    }else{
-         instrucoes.pop();
-            if (!instrucoes.empty()) {
-                PC = instrucoes.front().end;
-            }
-    }
-
-}
-
-void JGT(string &exPC, string  exBinario){
-      string endereco = exBinario.substr(5, 9);
-    formatarBinario(endereco);
-
-    if (Z==0&&C==0) {
-     
+    if (Z == 0 && C == 1) {
         string binarioPC = conveterInstrucao(exPC);
 
+        bitset<16> b1(stoi(endereco, nullptr, 2));
+        bitset<16> b2(stoi(binarioPC, nullptr, 2));
 
-    bitset<16> b1(endereco);
-    bitset<16> b2(binarioPC);
+        int16_t num1 = static_cast<int16_t>(b1.to_ulong());
+        int16_t num2 = static_cast<int16_t>(b2.to_ulong());
 
-    int16_t num1 = static_cast<int16_t>(b1.to_ulong());
-    int16_t num2 = static_cast<int16_t>(b2.to_ulong());
-    int16_t resultado = num1 + num2;
+        int16_t resultado = num1 + num2;
 
-    string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
+        string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
+        formatarHexa(newPC);
 
-    formatarHexa(newPC);
-    exPC = newPC;
-    }else{
-         instrucoes.pop();
-            if (!instrucoes.empty()) {
-                PC = instrucoes.front().end;
-            }
+        exPC = newPC;
+
+    } else {
+        instrucoes.pop();
+
+        if (!instrucoes.empty()) {
+            PC = instrucoes.front().end;
+        }
     }
 }
 
+void JGT(string &exPC, string exBinario) {
+    string endereco = exBinario.substr(5, 9);
+    formatarBinario(endereco);
+
+    if (Z == 0 && C == 0) {
+        string binarioPC = conveterInstrucao(exPC);
+
+        bitset<16> b1(stoi(endereco, nullptr, 2));
+        bitset<16> b2(stoi(binarioPC, nullptr, 2));
+
+        int16_t num1 = static_cast<int16_t>(b1.to_ulong());
+        int16_t num2 = static_cast<int16_t>(b2.to_ulong());
+
+        int16_t resultado = num1 + num2;
+
+        string newPC = converteLongBiHexa(bitset<16>(resultado).to_string());
+        formatarHexa(newPC);
+
+        exPC = newPC;
+    } else {
+        instrucoes.pop();
+
+        if (!instrucoes.empty()) {
+            PC = instrucoes.front().end;
+        }
+    }
+}
 
 string procurarInstrucao(std::string binario, vector<string> &reg){
 
@@ -264,8 +227,6 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
     if(dado1=="0011"){//TODOLDR
         string r = binario.substr(5, 3);
         string r2 = binario.substr(8,3);
-
-        //r = [r2]
 
         string enderecoMemoria = reg[converterBiPraHexa(r2)-'0'];
 
@@ -286,7 +247,6 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         if(valorMemoria.empty()) valorMemoria = "0000000000000000";
 
         reg[converterBiPraHexa(r)-'0']==valorMemoria;
-
 
         return "LDR";
     }else if(dado1=="0100"){
@@ -481,9 +441,11 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
 
         reg[converterBiPraHexa(r) - '0'] = resultado.to_string();
         return "SHL";
-    }else if(dado1 == "1101") { //TODO aqui tem que pegar os dois registradores
+    }else if(dado1 == "1101") {
         string r = binario.substr(5,3);
-        int regAlvo = converterBiPraHexa(r) - '0';
+        string rm = binario.substr(8,3);
+        //r = rm >> 1
+        int regAlvo = converterBiPraHexa(rm) - '0';
 
         bitset<16> valor(reg[regAlvo]);
         bool ultimoBit = valor[0];
@@ -495,11 +457,13 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         Z = (valor.to_ulong() == 0) ? 1 : 0;
         S = valor[15];
       
-        reg[regAlvo] = valor.to_string();
+        reg[converterBiPraHexa(r)-'0'] = valor.to_string();
         return "ROR";
-    }else if(dado1 == "1110") { //TODO aqui tambem
+    }else if(dado1 == "1110") {
         string r = binario.substr(5,3);
-        int regAlvo = converterBiPraHexa(r) - '0';
+        string rd = binario.substr(8,3);
+
+        int regAlvo = converterBiPraHexa(rd) - '0';
 
         bitset<16> valor(reg[regAlvo]);
         bool primeiroBit = valor[15];
@@ -511,7 +475,7 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
         Z = (valor.to_ulong() == 0) ? 1 : 0;
         S = valor[15];
 
-        reg[regAlvo] = valor.to_string();
+        reg[converterBiPraHexa(r)-'0'] = valor.to_string();
         return "ROL";
     }else if(binario=="0000000000000000"){
         //moverPC(PC, instrucoes);
@@ -559,6 +523,7 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
 
             string guardar = converteLongBiHexa(v);
             formatarHexa(guardar);
+            memoria.back().valor="";
             memoria.push(faixa(subHexa(SP, "0x0002"), guardar));
             pilha.pop();
             return "POP";
@@ -595,52 +560,69 @@ string procurarInstrucao(std::string binario, vector<string> &reg){
             return "instrucao nao encontrada";
         }
     }else if(dado2=="00001"){
-        cout << dado3;
+       // cout << dado3;
         if(dado3=="00"){
             return "JMP";
-        }else if(dado3=="01"){//TODO terminar JEQ
+        }else if(dado3=="01"){
             return "JEQ";
-        }else if(dado3=="10"){ //TODO JLT
+        }else if(dado3=="10"){
             return "JLT";
-        }else if(dado3=="11"){ //TODO JGT
+        }else if(dado3=="11"){
             return "JGT";
         }else{
             return "instrucao nao encontrada";
         }
-    }else if(dado2=="00100"){ //TODO fazer mexer na memoria de dados
+    }else if(dado2=="00100"){
         string regNumStr;
         string regNumStr2;
-        
+
         regNumStr = binario.substr(8, 3);
         regNumStr2 = binario.substr(11, 3);
-        
-        int regNum = stoi(regNumStr, nullptr, 2);
 
+        int regNum = stoi(regNumStr, nullptr, 2);
         int regNum2 = stoi(regNumStr2, nullptr, 2);
 
         string valor = R[regNum2];
-    
-        R[regNum] =  valor;
-        
-        return "STR1";
-    }else if(dado2=="00101"){ //TODO fazer mexer na memoria de dados
-        string regNumStr;
 
-        regNumStr = binario.substr(8, 3);
-        
+        reg[regNum] = valor;
+
+    return "STR1";;
+    }else if (dado2 == "00101") {
+        string regNumStr = binario.substr(8, 3);
         int regNum = stoi(regNumStr, nullptr, 2);
-        
-        string valor;
-        
-        valor.append(binario.substr(5,3));
-        valor.append(binario.substr(11,5));
+
+        string valor;  
+        valor.append(binario.substr(5, 3));
+        valor.append(binario.substr(11, 5));
         formatarBinario(valor);
 
-        string valorBinario = conveterInstrucao(valor); 
-
+        string valorBinario = conveterInstrucao(valor);
         R[regNum] = valorBinario;
 
+        string enderecoMemoria = R[regNum];
+
+        bool encontrado = false;
+        queue<faixa> tempMemoria = memoria;
+        queue<faixa> novaMemoria;
+
+        while (!tempMemoria.empty()) {
+            if (tempMemoria.front().end == enderecoMemoria) {
+                tempMemoria.front().valor = valorBinario;
+                encontrado = true;
+            }
+            novaMemoria.push(tempMemoria.front());
+            tempMemoria.pop();
+        }
+
+        if (!encontrado) {
+            memoria.push(faixa(enderecoMemoria, valorBinario));
+        } else {
+            memoria = novaMemoria;
+        }
+
         return "STR2";
+
+
     }else{
         return "instrucao nao encontrada";
     }
@@ -675,7 +657,7 @@ void lerArquivo(string nomeDoArquivo) {
 
     PC = instrucoes.front().end;
 
-    cout << PC << "\n";
+    //cout << PC << "\n";
 
     while (!instrucoes.empty()) {
         if (PC == "0xFFFF") {
@@ -693,7 +675,7 @@ void lerArquivo(string nomeDoArquivo) {
             break;
         }
 
-        cout << resultado << "\n";
+        //cout << resultado << "\n";
 
         if (resultado == "JMP") {
             JMP(PC, instrucao);
@@ -713,9 +695,9 @@ void lerArquivo(string nomeDoArquivo) {
                 PC = instrucoes.front().end;
             }
         }
-        cout << "\n PC: " << PC << "\n";
+      //  cout << "\n PC: " << PC << "\n";
     }
 }
 
 
-#endif;
+#endif
